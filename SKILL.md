@@ -52,7 +52,12 @@ description: "统一搜索聚合引擎，融合网页搜索（16引擎+智能降
 | 抖音 | ❌ 直连 | SPA需浏览器 |
 | TinEye | ❌ 直连 | 以图搜图备选 |
 
-**执行方式：** 对需代理的引擎，使用 `web_fetch` 前先通过 `exec` 确认代理可用（`curl -x http://127.0.0.1:7890`），代理不可用时跳过该引擎直接降级。
+**执行方式：** `web_fetch` 不走系统代理，需代理的引擎必须用 `exec` + `curl -x http://127.0.0.1:7890` 请求。但 Brave/Google/DuckDuckGo 均为 SPA，curl 拿到的只是 JS bundle，无法提取搜索结果。
+
+**因此国际引擎的实际策略：**
+1. **web_search 内置工具**（首选，Brave API 自带代理，直接返回结构化结果）
+2. **exec curl -x 代理**（仅对非 SPA 引擎有效，如 Startpage）
+3. **browser 工具**（最后手段，完整渲染但速度慢）
 
 <!-- /FREEDOM:low -->
 
@@ -83,23 +88,21 @@ description: "统一搜索聚合引擎，融合网页搜索（16引擎+智能降
 
 | 优先级 | 引擎 | URL 模板 | 代理 | 说明 |
 |--------|------|----------|------|------|
-| P0 | 必应CN | `https://cn.bing.com/search?q={kw}&ensearch=0` | ❌ | 结果质量高，稳定 |
-| P0 | 百度 | `https://www.baidu.com/s?wd={kw}` | ❌ | 覆盖广，验证码风险 |
+| P0 | 必应CN | `https://cn.bing.com/search?q={kw}&ensearch=0` | ❌ | 结果质量高，稳定首选 |
 | P1 | 360 | `https://www.so.com/s?q={kw}` | ❌ | 兜底 |
 | P1 | 搜狗 | `https://sogou.com/web?query={kw}` | ❌ | 微信公众号独有 |
 | P2 | 神马 | `https://m.sm.cn/s?q={kw}` | ❌ | 移动端补充 |
 
 **英文/其他查询 → 国际引擎（按优先级排序）：**
 
-| 优先级 | 引擎 | URL 模板 | 代理 | 说明 |
-|--------|------|----------|------|------|
-| P0 | Brave | `https://search.brave.com/search?q={kw}` | ✅ | 独立索引，结果好 |
-| P0 | DuckDuckGo | `https://duckduckgo.com/html/?q={kw}` | ✅ | 无追踪，需Cookie |
-| P1 | Google | `https://www.google.com/search?q={kw}` | ✅ | 覆盖最广 |
-| P1 | Startpage | `https://www.startpage.com/sp/search?query={kw}` | ✅ | Google结果+隐私 |
-| P2 | Yahoo | `https://search.yahoo.com/search?p={kw}` | ✅ | 补充 |
-| P2 | Ecosia | `https://www.ecosia.org/search?q={kw}` | ✅ | 环保引擎 |
-| P3 | Qwant | `https://www.qwant.com/?q={kw}` | ✅ | GDPR合规 |
+| 优先级 | 引擎 | 方式 | 代理 | 说明 |
+|--------|------|------|------|------|
+| P0 | web_search（Brave API） | 内置工具 | ✅ 自动 | **首选**，自带代理，结构化结果 |
+| P1 | Startpage | `exec curl -x` | ✅ 必须 | Google结果+隐私，非SPA |
+| P2 | DuckDuckGo | `browser` 工具 | ✅ 必须 | 无追踪，需完整渲染 |
+| P3 | Google | `browser` 工具 | ✅ 必须 | 覆盖最广，需完整渲染 |
+
+> ⚠️ Brave/Google/DuckDuckGo 均为 SPA，`web_fetch` 和 `curl` 无法提取搜索结果，只能通过 `web_search` 内置工具或 `browser` 工具获取。
 
 ### Step 2：分级执行与降级策略
 
@@ -142,20 +145,21 @@ description: "统一搜索聚合引擎，融合网页搜索（16引擎+智能降
 
 | 优先级 | 引擎 | URL 模板 | 代理 |
 |--------|------|----------|------|
-| P0 | 必应图片 | `https://cn.bing.com/images/search?q={kw}` | ❌ |
-| P0 | 百度图片 | `https://image.baidu.com/search/index?tn=baiduimage&word={kw}` | ❌ |
-| P1 | DuckDuckGo图片 | `https://duckduckgo.com/html/?q={kw}&iax=images&ia=images` | ✅ |
-| P2 | Google图片 | `https://www.google.com/search?q={kw}&tbm=isch` | ✅ |
+| P0 | 必应图片 | `https://cn.bing.com/images/search?q={kw}` | ❌ | 首选，稳定 |
+| P1 | DuckDuckGo图片 | `https://duckduckgo.com/html/?q={kw}&iax=images&ia=images` | ✅ | 需代理 |
+| P2 | Google图片 | `https://www.google.com/search?q={kw}&tbm=isch` | ✅ | 需代理 |
 
 ### 以图搜图（需提供图片 URL 或本地路径）
 
-| 优先级 | 引擎 | URL 模板 | 代理 | 说明 |
-|--------|------|----------|------|------|
-| P0 | 百度以图搜图 | `https://image.baidu.com/n/pc_search?queryImageUrl={url}` | ❌ | 国内首选 |
-| P1 | TinEye | `https://tineye.com/search/?url={url}` | ❌ | 稳定，免费 |
-| P2 | Yandex | `https://yandex.com/images/search?rpt=imageview&url={url}` | ⚠️ | 人脸识别强，偶不稳定 |
+| 优先级 | 引擎 | 方式 | 代理 | 说明 |
+|--------|------|------|------|------|
+| P0 | TinEye | `browser` 工具 | ❌ | 稳定，免费，需浏览器渲染 |
+| P1 | Yandex | `browser` 工具 | ⚠️ | 人脸识别强，偶不稳定 |
 
-**注意：** Google Lens 已废弃 URL 上传方式，不再作为选项。
+**注意：**
+- Google Lens 已废弃 URL 上传方式，不再作为选项
+- TinEye 反爬严格，`web_fetch`/`curl` 均返回 403，必须用 `browser` 工具
+- 以图搜图统一需要浏览器环境，无纯 API 方案
 
 降级策略同网页搜索：P0 → P1 → P2，任一成功即停止。
 

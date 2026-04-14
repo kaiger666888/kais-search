@@ -1,5 +1,13 @@
 # 引擎详细参数
 
+## ⚠️ 关键发现（实测验证）
+
+1. **`web_fetch` 不走系统代理** — 所有需代理的引擎用 web_fetch 直连必失败
+2. **主流搜索引擎均为 SPA** — Brave/Google/DuckDuckGo/YouTube 等，curl 拿到的是 JS bundle，无法提取结果
+3. **百度反爬极严** — 频繁触发验证码，已从引擎池移除
+4. **以图搜图需浏览器** — TinEye/Yandex 反爬严格，必须用 browser 工具
+5. **实际最佳策略** — 国际搜索走 `web_search`（Brave API），国内搜索走 `web_fetch`（必应CN），视频搜索走 `web_search + site:`，图片搜索走 `web_fetch`（必应图片）
+
 ## 代理配置
 
 - **代理地址**: `http://127.0.0.1:7890`
@@ -13,16 +21,12 @@
 - 网页: `https://cn.bing.com/search?q={kw}&ensearch=0`
 - 图片: `https://cn.bing.com/images/search?q={kw}`
 - 时间过滤: `&filters=ex1:"ez1"` (一天), `"ez2"` (一周), `"ez3"` (一月)
-- 优点: 结果质量高，稳定，反爬宽松
-- 注意: 国内可直连，建议作为 P0
+- 优点: 结果质量高，稳定，反爬宽松，非 SPA
+- 注意: 国内直连，**网页/图片搜索首选**
 
-### 百度
-- 网页: `https://www.baidu.com/s?wd={kw}`
-- 图片: `https://image.baidu.com/search/index?tn=baiduimage&word={kw}`
-- 以图搜图: `https://image.baidu.com/n/pc_search?queryImageUrl={url}`
-- 时间过滤: `&ft=1` (一天), `&ft=2` (一周), `&ft=7` (一月)
-- ⚠️ 反爬严格，频繁请求触发验证码
-- 建议: 作为备选，不作为首选
+### ~~百度~~（已移除）
+- ⚠️ 反爬严格，频繁触发验证码，web_fetch 无法使用
+- 如需百度结果，建议通过 web_search 兜底获取
 
 ### 360搜索
 - 网页: `https://www.so.com/s?q={kw}`
@@ -39,10 +43,11 @@
 
 ## 国际引擎（需代理）
 
-### Brave Search ⭐ 推荐首选
+### Brave Search
 - 网页: `https://search.brave.com/search?q={kw}`
 - 代理: ✅ 必须
-- 优点: 独立索引，隐私优先，代理下稳定可用
+- ⚠️ SPA 应用，web_fetch 和 curl 均无法提取搜索结果
+- ✅ **推荐通过 web_search 内置工具使用**（底层就是 Brave API，自带代理）
 
 ### DuckDuckGo
 - HTML版: `https://duckduckgo.com/html/?q={kw}`
@@ -104,9 +109,11 @@
 
 ## 图片引擎
 
-### TinEye（以图搜图备选）⭐ 推荐
+### TinEye（以图搜图）⭐ 推荐
 - URL: `https://tineye.com/search/?url={url}`
 - 代理: ❌ 直连
+- ⚠️ 反爬严格，web_fetch/curl 返回 403
+- ✅ **必须使用 browser 工具**打开页面提交图片
 - 优点: 稳定，免费，支持 URL 上传
 
 ### Yandex（以图搜图）
