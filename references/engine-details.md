@@ -1,89 +1,123 @@
 # 引擎详细参数
 
-## 国内引擎
+## 代理配置
+
+- **代理地址**: `http://127.0.0.1:7890`
+- **代理软件**: mihomo (clash meta)
+- **检测命令**: `curl -s --max-time 5 -x http://127.0.0.1:7890 -o /dev/null -w "%{http_code}" https://www.google.com`
+- **返回 200** = 代理可用，**超时/非200** = 代理不可用，跳过需代理引擎
+
+## 国内引擎（直连）
+
+### 必应CN ⭐ 推荐首选
+- 网页: `https://cn.bing.com/search?q={kw}&ensearch=0`
+- 图片: `https://cn.bing.com/images/search?q={kw}`
+- 时间过滤: `&filters=ex1:"ez1"` (一天), `"ez2"` (一周), `"ez3"` (一月)
+- 优点: 结果质量高，稳定，反爬宽松
+- 注意: 国内可直连，建议作为 P0
 
 ### 百度
-- 基础 URL: `https://www.baidu.com/s?wd={kw}`
-- 图片搜索: `https://image.baidu.com/search/index?tn=baiduimage&word={kw}`
+- 网页: `https://www.baidu.com/s?wd={kw}`
+- 图片: `https://image.baidu.com/search/index?tn=baiduimage&word={kw}`
 - 以图搜图: `https://image.baidu.com/n/pc_search?queryImageUrl={url}`
-- 注意: 反爬严格，需要完整 UA 和 Cookie
-- 时间过滤: `&gpc=stf={timestamp}%7C{timestamp}`
-
-### 必应CN
-- 基础 URL: `https://cn.bing.com/search?q={kw}&ensearch=0`
-- 图片搜索: `https://cn.bing.com/images/search?q={kw}`
-- 注意: 国内可直连，结果质量高
-- 时间过滤: `&filters=ex1:"ez1"` (过去一天)
+- 时间过滤: `&ft=1` (一天), `&ft=2` (一周), `&ft=7` (一月)
+- ⚠️ 反爬严格，频繁请求触发验证码
+- 建议: 作为备选，不作为首选
 
 ### 360搜索
-- 基础 URL: `https://www.so.com/s?q={kw}`
-- 注意: 对中文理解较好
+- 网页: `https://www.so.com/s?q={kw}`
+- 优点: 对中文理解较好，稳定
 
 ### 搜狗
-- 基础 URL: `https://sogou.com/web?query={kw}`
-- 微信搜索: `https://wx.sogou.com/weixin?type=2&query={kw}`
-- 注意: 微信公众号内容独有来源
+- 网页: `https://sogou.com/web?query={kw}`
+- 微信: `https://wx.sogou.com/weixin?type=2&query={kw}`
+- 优点: 微信公众号内容独有来源
 
 ### 神马
-- 基础 URL: `https://m.sm.cn/s?q={kw}`
-- 注意: 移动端优先，结果偏移动端
+- 网页: `https://m.sm.cn/s?q={kw}`
+- 优点: 移动端优先
 
-## 国际引擎
+## 国际引擎（需代理）
+
+### Brave Search ⭐ 推荐首选
+- 网页: `https://search.brave.com/search?q={kw}`
+- 代理: ✅ 必须
+- 优点: 独立索引，隐私优先，代理下稳定可用
 
 ### DuckDuckGo
 - HTML版: `https://duckduckgo.com/html/?q={kw}`
 - 图片: `https://duckduckgo.com/html/?q={kw}&iax=images&ia=images`
-- 注意: 无追踪，HTML版无Cookie要求，推荐首选
-- Bang语法: `!gh tensorflow` → GitHub搜索
-
-### Brave
-- 基础 URL: `https://search.brave.com/search?q={kw}`
-- 注意: 独立索引，隐私优先
+- 代理: ✅ 必须
+- ⚠️ HTML版首次访问会 302 跳转（需获取 Cookie）
+- Bang语法: `!gh tensorflow` → GitHub
 
 ### Google
-- 基础 URL: `https://www.google.com/search?q={kw}`
-- Google HK: `https://www.google.com.hk/search?q={kw}`
-- 时间过滤: `&tbs=qdr:d` (天), `qdr:w` (周), `qdr:m` (月), `qdr:y` (年)
-- 注意: 国内需代理
+- 网页: `https://www.google.com/search?q={kw}`
+- 图片: `https://www.google.com/search?q={kw}&tbm=isch`
+- 代理: ✅ 必须
+- 时间过滤: `&tbs=qdr:d/w/m/y`
+- 优点: 覆盖最广
+
+### Google HK
+- 网页: `https://www.google.com.hk/search?q={kw}`
+- 代理: ✅ 必须
 
 ### Startpage
-- 基础 URL: `https://www.startpage.com/sp/search?query={kw}`
-- 注意: Google结果代理，隐私保护
+- 网页: `https://www.startpage.com/sp/search?query={kw}`
+- 代理: ✅ 必须
+- 优点: Google 结果 + 隐私保护
 
 ### Yahoo
-- 基础 URL: `https://search.yahoo.com/search?p={kw}`
+- 网页: `https://search.yahoo.com/search?p={kw}`
+- 代理: ✅ 必须
 
 ### Ecosia
-- 基础 URL: `https://www.ecosia.org/search?q={kw}`
-- 注意: 搜索收益用于种树
+- 网页: `https://www.ecosia.org/search?q={kw}`
+- 代理: ✅ 必须
+- 优点: 搜索收益用于种树
 
 ### Qwant
-- 基础 URL: `https://www.qwant.com/?q={kw}`
-- 注意: 欧洲GDPR合规
+- 网页: `https://www.qwant.com/?q={kw}`
+- 代理: ✅ 必须
+- 优点: 欧洲 GDPR 合规
 
 ## 视频平台
 
 ### B站
-- 搜索: `https://search.bilibili.com/all?keyword={kw}`
-- 注意: 无需API，web_fetch可直接解析，国内首选
+- 搜索页: `https://search.bilibili.com/all?keyword={kw}`
+- API: `https://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword={kw}`
+- 代理: ❌ 直连
+- ⚠️ SPA 应用，web_fetch 无法获取动态内容
+- ✅ 推荐: `web_search("site:bilibili.com {kw}")` 或 `browser` 工具
 
 ### 抖音
-- 搜索: `https://www.douyin.com/search/{kw}`
-- 注意: 反爬严格，可能需要浏览器渲染
+- 搜索页: `https://www.douyin.com/search/{kw}`
+- 代理: ❌ 直连
+- ⚠️ SPA 应用，JS 渲染，web_fetch 返回空
+- ✅ 推荐: `browser` 工具
 
 ### YouTube
-- 搜索: `https://www.youtube.com/results?search_query={kw}`
-- 注意: 需代理
+- 搜索页: `https://www.youtube.com/results?search_query={kw}`
+- 代理: ✅ 必须
+- ⚠️ SPA 应用
+- ✅ 推荐: `web_search("site:youtube.com {kw}")` 或 `browser` 工具
 
 ## 图片引擎
 
-### Yandex
-- 以图搜图: `https://yandex.com/images/search?rpt=imageview&url={url}`
-- 注意: 以图搜图能力强，人脸识别佳
+### TinEye（以图搜图备选）⭐ 推荐
+- URL: `https://tineye.com/search/?url={url}`
+- 代理: ❌ 直连
+- 优点: 稳定，免费，支持 URL 上传
 
-### Google Lens
-- 以图搜图: `https://lens.google.com/uploadbyurl?url={url}`
-- 注意: 综合能力最强，需代理
+### Yandex（以图搜图）
+- URL: `https://yandex.com/images/search?rpt=imageview&url={url}`
+- 代理: ⚠️ 视情况
+- 优点: 以图搜图能力强，人脸识别佳
+- ⚠️ 偶尔维护中不可用
+
+### ❌ Google Lens（已废弃）
+- URL上传方式已废弃（返回 404）
+- 不再作为以图搜图选项
 
 ## 推荐请求头
 
