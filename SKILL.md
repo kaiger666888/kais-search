@@ -143,23 +143,78 @@ description: "统一搜索聚合引擎，融合网页搜索（16引擎+智能降
 
 ### 文字搜图
 
-| 优先级 | 引擎 | URL 模板 | 代理 |
-|--------|------|----------|------|
-| P0 | 必应图片 | `https://cn.bing.com/images/search?q={kw}` | ❌ | 首选，稳定 |
-| P1 | DuckDuckGo图片 | `https://duckduckgo.com/html/?q={kw}&iax=images&ia=images` | ✅ | 需代理 |
-| P2 | Google图片 | `https://www.google.com/search?q={kw}&tbm=isch` | ✅ | 需代理 |
+**脚本：** `scripts/text_image_search.py`
+
+```bash
+# 基本搜索
+python3 scripts/text_image_search.py "可爱猫咪"
+
+# 指定意图和数量
+python3 scripts/text_image_search.py "taylor swift official" --intent official --count 3
+
+# 搜索并下载最佳图片
+python3 scripts/text_image_search.py "aurora wallpaper 4k" --download
+```
+
+**引擎池：**
+
+| 优先级 | 引擎 | 代理 | 说明 |
+|--------|------|------|------|
+| P0 | 必应图片 | ❌ | 直连，稳定首选 |
+| P1 | 搜狗图片 | ❌ | 直连，补充召回 |
+
+**智能特性：**
+
+| 特性 | 说明 |
+|------|------|
+| 🎯 意图识别 | 自动分类：meme/official/portrait/wallpaper/avatar |
+| 📊 置信度分级 | high→发送最佳图，medium→2-3张候选，low→搜索链接 |
+| 🔍 质量过滤 | 拒绝 logo/sprite/缩略图，意图感知排序 |
+| 📥 自动下载 | `--download` 下载最佳图片到本地发送 |
+| 🔢 参数解析 | 支持 "3张"、"official"、"4k" 等自然语言参数 |
+
+**意图关键词：**
+
+| 意图 | 触发词 |
+|------|--------|
+| meme | meme、表情包、梗图 |
+| official | official、官方、logo、标志、吉祥物 |
+| avatar | avatar、头像、profile picture |
+| wallpaper | wallpaper、壁纸、4k、hd、高清 |
+| portrait | 默认，普通人物/物体 |
 
 ### 以图搜图（需提供图片 URL 或本地路径）
 
-| 优先级 | 引擎 | 方式 | 代理 | 说明 |
-|--------|------|------|------|------|
-| P0 | TinEye | `browser` 工具 | ❌ | 稳定，免费，需浏览器渲染 |
-| P1 | Yandex | `browser` 工具 | ⚠️ | 人脸识别强，偶不稳定 |
+**脚本：** `scripts/reverse_image_search.py`
 
-**注意：**
-- Google Lens 已废弃 URL 上传方式，不再作为选项
-- TinEye 反爬严格，`web_fetch`/`curl` 均返回 403，必须用 `browser` 工具
-- 以图搜图统一需要浏览器环境，无纯 API 方案
+<!-- FREEDOM:low -->
+**首次使用需安装依赖：**
+```bash
+bash scripts/setup.sh
+```
+<!-- /FREEDOM:low -->
+
+```bash
+# Yandex 以图搜图（默认，最稳定）
+python3 scripts/reverse_image_search.py "https://example.com/photo.jpg"
+
+# Bing 以图搜图
+python3 scripts/reverse_image_search.py "/path/to/local/image.jpg" bing
+
+# 多引擎并行
+python3 scripts/reverse_image_search.py "https://example.com/photo.jpg" all
+```
+
+**引擎池（基于 PicImageSearch 库）：**
+
+| 优先级 | 引擎 | 代理 | 说明 |
+|--------|------|------|------|
+| P0 | Yandex | ⚠️ | 人脸识别强，偶不稳定 |
+| P1 | Bing | ❌ | 稳定补充 |
+
+**输出：** JSON 结构化结果，包含标题、URL、缩略图、相似度。
+
+**注意：** Google Lens 已废弃 URL 上传方式，不再作为选项。
 
 降级策略同网页搜索：P0 → P1 → P2，任一成功即停止。
 
@@ -305,6 +360,14 @@ browser action=open url="https://www.youtube.com/results?search_query={kw}"
 - 单引擎超时：10 秒
 - 降级重试：最多 1 次（2 秒延迟后）
 - 批次大小：每轮 2 个引擎并发
+
+## 脚本工具
+
+| 脚本 | 用途 | 依赖 |
+|------|------|------|
+| `scripts/text_image_search.py` | 文字搜图：多引擎+意图识别+质量过滤+下载 | 无（纯标准库） |
+| `scripts/reverse_image_search.py` | 以图搜图：PicImageSearch 库 | `bash scripts/setup.sh` |
+| `scripts/setup.sh` | 安装以图搜图 Python 依赖 | python3 venv |
 
 ## 安全与隐私
 
