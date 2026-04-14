@@ -185,24 +185,27 @@ python3 scripts/text_image_search.py "aurora wallpaper 4k" --download
 
 ### 以图搜图（需提供图片 URL 或本地路径）
 
-**脚本：** `scripts/reverse_image_search.py`
+**脚本：** `scripts/reverse_image_search.js`（Node.js + Playwright）
 
 <!-- FREEDOM:low -->
-**首次使用需安装依赖：**
-```bash
-bash scripts/setup.sh
-```
+**依赖：** Playwright（已通过 workspace npm 安装，无需额外操作）
 <!-- /FREEDOM:low -->
 
 ```bash
-# Yandex 以图搜图（默认，最稳定）
-python3 scripts/reverse_image_search.py "https://example.com/photo.jpg"
+# Bing 以图搜图（首选，直连，稳定）
+node scripts/reverse_image_search.js "https://example.com/photo.jpg" --engine bing
 
-# Bing 以图搜图
-python3 scripts/reverse_image_search.py "/path/to/local/image.jpg" bing
+# Yandex 以图搜图（人脸识别强）
+node scripts/reverse_image_search.js "https://example.com/photo.jpg" --engine yandex
+
+# Google Lens（需代理，覆盖最广）
+node scripts/reverse_image_search.js "https://example.com/photo.jpg" --engine google
+
+# 本地文件也支持
+node scripts/reverse_image_search.js "/path/to/image.jpg" --engine bing
 
 # 多引擎并行
-python3 scripts/reverse_image_search.py "https://example.com/photo.jpg" all
+node scripts/reverse_image_search.js "https://example.com/photo.jpg" --engine all
 ```
 
 **引擎池（基于 PicImageSearch 库）：**
@@ -366,8 +369,7 @@ browser action=open url="https://www.youtube.com/results?search_query={kw}"
 | 脚本 | 用途 | 依赖 |
 |------|------|------|
 | `scripts/text_image_search.py` | 文字搜图：多引擎+意图识别+质量过滤+下载 | 无（纯标准库） |
-| `scripts/reverse_image_search.py` | 以图搜图：PicImageSearch 库 | `bash scripts/setup.sh` |
-| `scripts/setup.sh` | 安装以图搜图 Python 依赖 | python3 venv |
+| `scripts/reverse_image_search.js` | 以图搜图：Playwright 浏览器自动化 | Node.js + Playwright（已安装） |
 
 ## 安全与隐私
 

@@ -1,18 +1,15 @@
 #!/bin/bash
 # kais-search 依赖安装
-# 以图搜图需要 PicImageSearch
+# 以图搜图需要 playwright Python 包
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "🔧 安装 kais-search 依赖..."
 
-# 创建 venv（仅以图搜图需要）
-if [ ! -d "$SCRIPT_DIR/.venv" ]; then
-    echo "📦 创建 Python venv..."
-    python3 -m venv "$SCRIPT_DIR/.venv"
-fi
+# 安装 playwright Python 包
+pip3 install -q playwright 2>/dev/null
 
-echo "📦 安装 PicImageSearch..."
-"$SCRIPT_DIR/.venv/bin/pip" install -q PicImageSearch
+# 确保 playwright 浏览器已安装
+npx playwright install chromium 2>/dev/null
 
 echo "✅ 依赖安装完成"
